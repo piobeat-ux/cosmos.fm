@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Clock, User, Play, Calendar, Bell } from 'lucide-react';
 
 const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const fullDays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 
 const schedule = {
   'Пн': [
