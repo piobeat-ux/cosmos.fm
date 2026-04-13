@@ -2,124 +2,194 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const { 
-  loadData, 
-  getShows, 
-  getPodcasts, 
-  updateShows, 
-  updatePods 
-} = require('./db');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Загружаем данные при старте
-loadData();
+const DATA_FILE = path.join(__dirname, 'data.json');
 
-// API маршруты
+// Чтение данных
+function readData() {
+  try {
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Ошибка чтения data.json:', err);
+    return { shows: [], podcasts: [], hosts: [], pages: {}, settings: {} };
+  }
+}
+
+// Запись данных
+function writeData(data) {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    return true;
+  } catch (err) {
+    console.error('Ошибка записи data.json:', err);
+    return false;
+  }
+}
+
+// ========== API ROUTES ==========
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  const data = readData();
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    database: 'JSON File',
-    shows: getShows().length,
-    podcasts: getPodcasts().length
+    shows: data.shows?.length || 0,
+    podcasts: data.podcasts?.length || 0,
+    hosts: data.hosts?.length || 0
   });
 });
 
-// SHOWS API
-
-// Получить все передачи
+// ========== SHOWS ==========
 app.get('/api/shows', (req, res) => {
-  res.json(getShows());
+  const data = readData();
+  res.json(data.shows || []);
 });
 
-// Получить текущий эфир
 app.get('/api/shows/current', (req, res) => {
-  const shows = getShows();
-  const current = shows.find(s => s.isLive) || shows[0];
-  res.json(current);
+  const data = readData();
+  const current = data.shows?.find(s => s.isLive) || data.shows?.[0];
+  res.json(current || null);
 });
 
-// Добавить передачу
 app.post('/api/shows', (req, res) => {
-  const shows = getShows();
-  const show = {
-    id: Date.now().toString(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  shows.push(show);
-  updateShows(shows);
+  const data = readData();
+  const show = { id: Date.now().toString(), ...req.body, createdAt: new Date().toISOString() };
+  data.shows = data.shows || [];
+  data.shows.push(show);
+  writeData(data);
   res.status(201).json(show);
 });
 
-// Обновить передачу
 app.put('/api/shows/:id', (req, res) => {
-  const shows = getShows();
-  const index = shows.findIndex(s => s.id === req.params.id);
+  const data = readData();
+  const index = data.shows?.findIndex(s => s.id === req.params.id);
   if (index === -1) return res.status(404).json({ error: 'Not found' });
-  
-  shows[index] = { ...shows[index], ...req.body };
-  updateShows(shows);
-  res.json(shows[index]);
+  data.shows[index] = { ...data.shows[index], ...req.body, updatedAt: new Date().toISOString() };
+  writeData(data);
+  res.json(data.shows[index]);
 });
 
-// Удалить передачу
 app.delete('/api/shows/:id', (req, res) => {
-  let shows = getShows();
-  shows = shows.filter(s => s.id !== req.params.id);
-  updateShows(shows);
+  const data = readData();
+  data.shows = data.shows?.filter(s => s.id !== req.params.id) || [];
+  writeData(data);
   res.json({ message: 'Deleted' });
 });
 
-// PODCASTS API
-
-// Получить все подкасты
+// ========== PODCASTS ==========
 app.get('/api/podcasts', (req, res) => {
-  res.json(getPodcasts());
+  const data = readData();
+  res.json(data.podcasts || []);
 });
 
-// Добавить подкаст
 app.post('/api/podcasts', (req, res) => {
-  const podcasts = getPodcasts();
-  const podcast = {
-    id: Date.now().toString(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  podcasts.push(podcast);
-  updatePods(podcasts);
+  const data = readData();
+  const podcast = { id: Date.now().toString(), ...req.body, createdAt: new Date().toISOString() };
+  data.podcasts = data.podcasts || [];
+  data.podcasts.push(podcast);
+  writeData(data);
   res.status(201).json(podcast);
 });
 
-// Обновить подкаст
 app.put('/api/podcasts/:id', (req, res) => {
-  const podcasts = getPodcasts();
-  const index = podcasts.findIndex(p => p.id === req.params.id);
+  const data = readData();
+  const index = data.podcasts?.findIndex(p => p.id === req.params.id);
   if (index === -1) return res.status(404).json({ error: 'Not found' });
-  
-  podcasts[index] = { ...podcasts[index], ...req.body };
-  updatePods(podcasts);
-  res.json(podcasts[index]);
+  data.podcasts[index] = { ...data.podcasts[index], ...req.body, updatedAt: new Date().toISOString() };
+  writeData(data);
+  res.json(data.podcasts[index]);
 });
 
-// Удалить подкаст
 app.delete('/api/podcasts/:id', (req, res) => {
-  let podcasts = getPodcasts();
-  podcasts = podcasts.filter(p => p.id !== req.params.id);
-  updatePods(podcasts);
+  const data = readData();
+  data.podcasts = data.podcasts?.filter(p => p.id !== req.params.id) || [];
+  writeData(data);
   res.json({ message: 'Deleted' });
 });
 
-// Запуск
-const PORT = process.env.PORT || 3000;
+// ========== HOSTS ==========
+app.get('/api/hosts', (req, res) => {
+  const data = readData();
+  res.json(data.hosts || []);
+});
 
+app.post('/api/hosts', (req, res) => {
+  const data = readData();
+  const host = { id: Date.now().toString(), ...req.body, createdAt: new Date().toISOString() };
+  data.hosts = data.hosts || [];
+  data.hosts.push(host);
+  writeData(data);
+  res.status(201).json(host);
+});
+
+app.put('/api/hosts/:id', (req, res) => {
+  const data = readData();
+  const index = data.hosts?.findIndex(h => h.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Not found' });
+  data.hosts[index] = { ...data.hosts[index], ...req.body, updatedAt: new Date().toISOString() };
+  writeData(data);
+  res.json(data.hosts[index]);
+});
+
+app.delete('/api/hosts/:id', (req, res) => {
+  const data = readData();
+  data.hosts = data.hosts?.filter(h => h.id !== req.params.id) || [];
+  writeData(data);
+  res.json({ message: 'Deleted' });
+});
+
+// ========== PAGES CONTENT ==========
+app.get('/api/pages/:page', (req, res) => {
+  const data = readData();
+  const page = data.pages?.[req.params.page];
+  res.json(page || {});
+});
+
+app.put('/api/pages/:page', (req, res) => {
+  const data = readData();
+  data.pages = data.pages || {};
+  data.pages[req.params.page] = { ...data.pages[req.params.page], ...req.body };
+  writeData(data);
+  res.json(data.pages[req.params.page]);
+});
+
+// ========== SETTINGS ==========
+app.get('/api/settings', (req, res) => {
+  const data = readData();
+  res.json(data.settings || {});
+});
+
+app.put('/api/settings', (req, res) => {
+  const data = readData();
+  data.settings = { ...data.settings, ...req.body };
+  writeData(data);
+  res.json(data.settings);
+});
+
+// ========== FULL DATA EXPORT/IMPORT ==========
+app.get('/api/data', (req, res) => {
+  res.json(readData());
+});
+
+app.post('/api/data', (req, res) => {
+  if (writeData(req.body)) {
+    res.json({ message: 'Data updated' });
+  } else {
+    res.status(500).json({ error: 'Failed to write data' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Сервер на порту ${PORT}`);
   console.log(`📍 API: http://localhost:${PORT}/api`);
-  console.log('💾 Данные сохраняются в data.json');
+  console.log(`💾 Данные в data.json`);
 });

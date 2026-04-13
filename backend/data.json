@@ -1,65 +1,43 @@
 {
   "shows": [
-    {
-      "id": "1",
-      "title": "Утренний кофе",
-      "host": "Анна Петрова",
-      "time": "10:00",
-      "category": "Утреннее шоу",
-      "isLive": true,
-      "location": "Отель Cosmos Moscow"
-    },
-    {
-      "id": "2",
-      "title": "Обеденный перерыв",
-      "host": "Михаил Соколов",
-      "time": "12:00",
-      "category": "Музыка",
-      "isLive": false,
-      "location": "Студия 2"
-    },
-    {
-      "id": "3",
-      "title": "Кофе-брейк",
-      "host": "Елена Волкова",
-      "time": "15:00",
-      "category": "Разговорное",
-      "isLive": false,
-      "location": "Студия 1"
-    },
-    {
-      "id": "1775988806645",
-      "title": "Вечернее шоу",
-      "host": "Тест",
-      "time": "18:00",
-      "category": "Музыка",
-      "createdAt": "2026-04-12T10:13:26.645Z"
-    }
+    { "id": "1", "title": "Утренний кофе", "host": "Анна Петрова", "time": "10:00", "category": "Утреннее шоу", "isLive": true, "location": "Отель Cosmos Moscow", "dayOfWeek": ["monday", "tuesday", "wednesday", "thursday", "friday"], "duration": 60 },
+    { "id": "2", "title": "Обеденный перерыв", "host": "Михаил Соколов", "time": "12:00", "category": "Музыка", "isLive": false, "location": "Студия 2", "dayOfWeek": ["monday", "tuesday", "wednesday", "thursday", "friday"], "duration": 60 },
+    { "id": "3", "title": "Кофе-брейк", "host": "Елена Волкова", "time": "15:00", "category": "Разговорное", "isLive": false, "location": "Студия 1", "dayOfWeek": ["monday", "tuesday", "wednesday", "thursday", "friday"], "duration": 30 },
+    { "id": "4", "title": "Вечернее шоу", "host": "Тест", "time": "18:00", "category": "Музыка", "isLive": false, "location": "Студия 3", "dayOfWeek": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"], "duration": 120 }
   ],
   "podcasts": [
-    {
-      "id": "1",
-      "title": "Истории отелей",
-      "host": "Анна Петрова",
-      "episodes": 24,
-      "duration": "45 мин",
-      "description": "Истории о лучших отелях мира"
+    { "id": "1", "title": "Истории отелей", "host": "Анна Петрова", "episodes": 24, "duration": "45 мин", "description": "Истории о лучших отелях мира", "image": "/podcasts/hotels.jpg" },
+    { "id": "2", "title": "Секреты консьержа", "host": "Михаил Соколов", "episodes": 18, "duration": "30 мин", "description": "Секреты от профессионалов", "image": "/podcasts/concierge.jpg" },
+    { "id": "3", "title": "Кухня шеф-повара", "host": "Елена Волкова", "episodes": 32, "duration": "60 мин", "description": "Кулинарные секреты", "image": "/podcasts/kitchen.jpg" }
+  ],
+  "hosts": [
+    { "id": "1", "name": "Анна Петрова", "role": "Ведущая утреннего шоу", "bio": "Журналист с 10-летним опытом в hospitality", "image": "/hosts/anna.jpg", "shows": ["Утренний кофе"] },
+    { "id": "2", "name": "Михаил Соколов", "role": "Музыкальный редактор", "bio": "DJ и музыкальный продюсер", "image": "/hosts/mikhail.jpg", "shows": ["Обеденный перерыв"] },
+    { "id": "3", "name": "Елена Волкова", "role": "Ведущая разговорных программ", "bio": "Психолог и коуч", "image": "/hosts/elena.jpg", "shows": ["Кофе-брейк"] }
+  ],
+  "pages": {
+    "home": {
+      "hero": {
+        "title": "Cosmos FM",
+        "subtitle": "Официальное радио отеля Cosmos Moscow",
+        "description": "Слушайте в прямом эфире 24/7"
+      },
+      "about": {
+        "title": "О нас",
+        "text": "Cosmos FM — это первое отельное радио в России..."
+      }
     },
-    {
-      "id": "2",
-      "title": "Секреты консьержа",
-      "host": "Михаил Соколов",
-      "episodes": 18,
-      "duration": "30 мин",
-      "description": "Секреты от профессионалов"
-    },
-    {
-      "id": "3",
-      "title": "Кухня шеф-повара",
-      "host": "Елена Волкова",
-      "episodes": 32,
-      "duration": "60 мин",
-      "description": "Кулинарные секреты"
+    "about": {
+      "title": "О Cosmos FM",
+      "content": "История, миссия, команда..."
     }
-  ]
+  },
+  "settings": {
+    "siteName": "Cosmos FM",
+    "streamUrl": "https://stream.example.com/cosmos-fm",
+    "social": {
+      "instagram": "https://instagram.com/cosmosfm",
+      "telegram": "https://t.me/cosmosfm"
+    }
+  }
 }
