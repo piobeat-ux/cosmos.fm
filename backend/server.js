@@ -4,10 +4,46 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Папка для загрузок
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+// Раздача статических файлов из папки uploads
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+// Настройка multer для загрузки изображений
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const ext = path.extname(file.originalname).toLowerCase();
+    const mime = allowedTypes.test(file.mimetype) && allowedTypes.test(ext);
+    if (mime) {
+      cb(null, true);
+    } else {
+      cb(new Error('Только изображения (jpeg, jpg, png, gif, webp)'));
+    }
+  }
+});
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -33,6 +69,16 @@ function writeData(data) {
   }
 }
 
+// ========== ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Файл не загружен' });
+  }
+  const baseUrl = process.env.BASE_URL || `https://cosmosfm-production.up.railway.app`;
+  const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+  res.json({ url: imageUrl });
+});
+
 // ========== API ROUTES ==========
 
 // Health check
@@ -43,7 +89,7 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     shows: data.shows?.length || 0,
     podcasts: data.podcasts?.length || 0,
-    hosts: data.hosts?.length || 0
+    hosts: data.hosts?.length || 0,
   });
 });
 
@@ -146,7 +192,7 @@ app.delete('/api/hosts/:id', (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
-// ========== PAGES CONTENT ==========
+// ========== PAGES ==========
 app.get('/api/pages/:page', (req, res) => {
   const data = readData();
   const page = data.pages?.[req.params.page];
@@ -174,7 +220,7 @@ app.put('/api/settings', (req, res) => {
   res.json(data.settings);
 });
 
-// ========== FULL DATA EXPORT/IMPORT ==========
+// ========== FULL DATA ==========
 app.get('/api/data', (req, res) => {
   res.json(readData());
 });
@@ -191,5 +237,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Сервер на порту ${PORT}`);
   console.log(`📍 API: http://localhost:${PORT}/api`);
-  console.log(`💾 Данные в data.json`);
+  console.log(`📁 Загрузки: http://localhost:${PORT}/uploads`);
 });
