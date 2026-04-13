@@ -12,14 +12,61 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Папка для загрузок
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+// Используем постоянное хранилище Railway если доступно
+const DATA_DIR = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+  ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'cosmos-data')
+  : __dirname;
+
+const DATA_FILE = path.join(DATA_DIR, 'data.json');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+
+console.log('📁 Data directory:', DATA_DIR);
+console.log('📁 Data file:', DATA_FILE);
 console.log('📁 Uploads directory:', UPLOADS_DIR);
 
-// Создаём папку если её нет
+// Создаём папки если их нет
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  console.log('✅ Created data directory');
+}
+
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   console.log('✅ Created uploads directory');
+}
+
+// Если data.json не существует — создаём с начальными данными
+if (!fs.existsSync(DATA_FILE)) {
+  const initialData = {
+    shows: [
+      { id: '1', title: 'Утренний кофе', host: 'Анна Петрова', time: '10:00', category: 'Утреннее шоу', isLive: true, location: 'Отель Cosmos Moscow', dayOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'], duration: '60 мин' },
+      { id: '2', title: 'Обеденный перерыв', host: 'Михаил Соколов', time: '12:00', category: 'Музыка', isLive: false, location: 'Студия 2', dayOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'], duration: '60 мин' },
+      { id: '3', title: 'Кофе-брейк', host: 'Елена Волкова', time: '15:00', category: 'Разговорное', isLive: false, location: 'Студия 1', dayOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'], duration: '30 мин' },
+    ],
+    podcasts: [
+      { id: '1', title: 'Истории отелей', host: 'Анна Петрова', episodes: 24, duration: '45 мин', description: 'Истории о лучших отелях мира', image: '' },
+      { id: '2', title: 'Секреты консьержа', host: 'Михаил Соколов', episodes: 18, duration: '30 мин', description: 'Секреты от профессионалов', image: '' },
+      { id: '3', title: 'Кухня шеф-повара', host: 'Елена Волкова', episodes: 32, duration: '60 мин', description: 'Кулинарные секреты', image: '' },
+    ],
+    hosts: [
+      { id: '1', name: 'Анна Петрова', role: 'Ведущая утреннего шоу', bio: 'Журналист с 10-летним опытом в hospitality', image: '', shows: ['Утренний кофе'] },
+      { id: '2', name: 'Михаил Соколов', role: 'Музыкальный редактор', bio: 'DJ и музыкальный продюсер', image: '', shows: ['Обеденный перерыв'] },
+      { id: '3', name: 'Елена Волкова', role: 'Ведущая разговорных программ', bio: 'Психолог и коуч', image: '', shows: ['Кофе-брейк'] },
+    ],
+    pages: {},
+    settings: {
+      siteName: 'Cosmos FM',
+      siteDescription: 'Официальное радио отеля Cosmos Moscow',
+      streamUrl: '',
+      contactEmail: '',
+      contactPhone: '',
+      contactAddress: '',
+      social: { vk: '', telegram: '', mave: '' },
+      seo: { title: 'Cosmos FM — Радио отеля Cosmos', description: 'Слушайте любимые шоу, подкасты и музыку 24/7', keywords: 'радио, отель, cosmos, музыка, подкасты' },
+    },
+  };
+  fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2));
+  console.log('✅ Created initial data.json');
 }
 
 // Раздача статических файлов из папки uploads
@@ -39,7 +86,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const ext = path.extname(file.originalname).toLowerCase();
@@ -51,8 +98,6 @@ const upload = multer({
     }
   }
 });
-
-const DATA_FILE = path.join(__dirname, 'data.json');
 
 // Чтение данных
 function readData() {
@@ -78,26 +123,15 @@ function writeData(data) {
 
 // ========== ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
 app.post('/api/upload', upload.single('image'), (req, res) => {
-  console.log('📤 Upload request received');
-  
   if (!req.file) {
-    console.error('❌ No file uploaded');
     return res.status(400).json({ error: 'Файл не загружен' });
   }
-  
-  console.log('✅ File uploaded:', req.file.filename);
-  
   const baseUrl = process.env.BASE_URL || `https://cosmosfm-production.up.railway.app`;
   const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-  
-  console.log('🖼️ Image URL:', imageUrl);
-  
   res.json({ url: imageUrl });
 });
 
 // ========== API ROUTES ==========
-
-// Health check
 app.get('/api/health', (req, res) => {
   const data = readData();
   res.json({
@@ -109,7 +143,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ========== SHOWS ==========
 app.get('/api/shows', (req, res) => {
   const data = readData();
   res.json(data.shows || []);
@@ -146,7 +179,6 @@ app.delete('/api/shows/:id', (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
-// ========== PODCASTS ==========
 app.get('/api/podcasts', (req, res) => {
   const data = readData();
   res.json(data.podcasts || []);
@@ -177,7 +209,6 @@ app.delete('/api/podcasts/:id', (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
-// ========== HOSTS ==========
 app.get('/api/hosts', (req, res) => {
   const data = readData();
   res.json(data.hosts || []);
@@ -208,7 +239,6 @@ app.delete('/api/hosts/:id', (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
-// ========== PAGES ==========
 app.get('/api/pages/:page', (req, res) => {
   const data = readData();
   const page = data.pages?.[req.params.page];
@@ -223,7 +253,6 @@ app.put('/api/pages/:page', (req, res) => {
   res.json(data.pages[req.params.page]);
 });
 
-// ========== SETTINGS ==========
 app.get('/api/settings', (req, res) => {
   const data = readData();
   res.json(data.settings || {});
@@ -236,7 +265,6 @@ app.put('/api/settings', (req, res) => {
   res.json(data.settings);
 });
 
-// ========== FULL DATA ==========
 app.get('/api/data', (req, res) => {
   res.json(readData());
 });
@@ -249,11 +277,10 @@ app.post('/api/data', (req, res) => {
   }
 });
 
-// ========== ОТЛАДКА: список файлов в uploads ==========
 app.get('/api/debug/uploads', (req, res) => {
   try {
     const files = fs.readdirSync(UPLOADS_DIR);
-    res.json({ files, count: files.length });
+    res.json({ files, count: files.length, uploadsDir: UPLOADS_DIR });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
