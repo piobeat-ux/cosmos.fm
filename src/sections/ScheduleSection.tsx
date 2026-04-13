@@ -1,58 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Clock, User, Play, Calendar, Bell } from 'lucide-react';
+
+const API_URL = 'https://cosmosfm-production.up.railway.app/api';
 
 const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const fullDays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
-
-const schedule = {
-  'Пн': [
-    { time: '07:00', title: 'Утренний кофе', host: 'Анна Петрова', category: 'Утреннее шоу', duration: '3ч' },
-    { time: '10:00', title: 'Новости отелей', host: 'Дмитрий Иванов', category: 'Новости', duration: '1ч' },
-    { time: '12:00', title: 'Обеденный микс', host: 'Мария Козлова', category: 'Музыка', duration: '2ч' },
-    { time: '15:00', title: 'Кофе-брейк', host: 'Елена Волкова', category: 'Разговорное', duration: '1ч' },
-    { time: '18:00', title: 'Вечерний чилл', host: 'Алексей Смирнов', category: 'Музыка', duration: '3ч' },
-  ],
-  'Вт': [
-    { time: '07:00', title: 'Доброе утро', host: 'Сергей Новиков', category: 'Утреннее шоу', duration: '3ч' },
-    { time: '10:00', title: 'Бизнес-завтрак', host: 'Ольга Попова', category: 'Бизнес', duration: '1ч' },
-    { time: '12:00', title: 'Хиты дня', host: 'Андрей Морозов', category: 'Музыка', duration: '2ч' },
-    { time: '15:00', title: 'Истории гостей', host: 'Наталья Лебедева', category: 'Разговорное', duration: '1ч' },
-    { time: '18:00', title: 'Джазовый вечер', host: 'Игорь Волков', category: 'Музыка', duration: '3ч' },
-  ],
-  'Ср': [
-    { time: '07:00', title: 'Утренний кофе', host: 'Анна Петрова', category: 'Утреннее шоу', duration: '3ч' },
-    { time: '10:00', title: 'Советы консьержа', host: 'Виктор Соколов', category: 'Обучение', duration: '1ч' },
-    { time: '12:00', title: 'Ланч-тайм', host: 'Михаил Соколов', category: 'Музыка', duration: '2ч' },
-    { time: '15:00', title: 'Кухня шеф-повара', host: 'Павел Кузнецов', category: 'Кулинария', duration: '1ч' },
-    { time: '18:00', title: 'Релакс', host: 'Татьяна Новикова', category: 'Музыка', duration: '3ч' },
-  ],
-  'Чт': [
-    { time: '07:00', title: 'Старт дня', host: 'Кирилл Петров', category: 'Утреннее шоу', duration: '3ч' },
-    { time: '10:00', title: 'Тренды hospitality', host: 'Екатерина Смирнова', category: 'Бизнес', duration: '1ч' },
-    { time: '12:00', title: 'Поп-чарт', host: 'Артем Васильев', category: 'Музыка', duration: '2ч' },
-    { time: '15:00', title: 'Вопрос-ответ', host: 'Юлия Морозова', category: 'Разговорное', duration: '1ч' },
-    { time: '18:00', title: 'Вечер хитов', host: 'Максим Козлов', category: 'Музыка', duration: '3ч' },
-  ],
-  'Пт': [
-    { time: '07:00', title: 'Пятничное утро', host: 'Анна Петрова', category: 'Утреннее шоу', duration: '3ч' },
-    { time: '10:00', title: 'Неделя в цифрах', host: 'Станислав Иванов', category: 'Новости', duration: '1ч' },
-    { time: '12:00', title: 'Party mix', host: 'Денис Новиков', category: 'Музыка', duration: '2ч' },
-    { time: '15:00', title: 'Интервью недели', host: 'София Лебедева', category: 'Разговорное', duration: '1ч' },
-    { time: '18:00', title: 'Friday night', host: 'DJ Cosmos', category: 'Музыка', duration: '4ч' },
-  ],
-  'Сб': [
-    { time: '09:00', title: 'Субботний бранч', host: 'Вера Попова', category: 'Утреннее шоу', duration: '3ч' },
-    { time: '12:00', title: 'Weekend vibes', host: 'Глеб Морозов', category: 'Музыка', duration: '3ч' },
-    { time: '15:00', title: 'Подкаст недели', host: 'Редакция', category: 'Подкаст', duration: '1ч' },
-    { time: '18:00', title: 'Вечернее шоу', host: 'Алиса Волкова', category: 'Развлечения', duration: '4ч' },
-  ],
-  'Вс': [
-    { time: '09:00', title: 'Воскресный завтрак', host: 'Марина Кузнецова', category: 'Утреннее шоу', duration: '3ч' },
-    { time: '12:00', title: 'Chill Sunday', host: 'Роман Соколов', category: 'Музыка', duration: '3ч' },
-    { time: '15:00', title: 'Лучшее за неделю', host: 'Редакция', category: 'Обзор', duration: '2ч' },
-    { time: '18:00', title: 'Подготовка к неделе', host: 'Анна Петрова', category: 'Музыка', duration: '3ч' },
-  ],
-};
 
 const categoryColors: Record<string, string> = {
   'Утреннее шоу': 'bg-[#f59e0b]/20 text-[#f59e0b]',
@@ -69,7 +21,116 @@ const categoryColors: Record<string, string> = {
 
 export function ScheduleSection() {
   const [activeDay, setActiveDay] = useState('Пн');
-  const today = 'Пн'; // В реальном приложении - текущий день
+  const [schedule, setSchedule] = useState<Record<string, any[]>>({});
+  const [loading, setLoading] = useState(true);
+  const today = 'Пн';
+
+  // Загрузка данных из API
+  useEffect(() => {
+    fetch(`${API_URL}/shows`)
+      .then(r => r.json())
+      .then(data => {
+        // Преобразуем данные API в формат расписания по дням
+        const newSchedule: Record<string, any[]> = {};
+        
+        days.forEach((day, index) => {
+          const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+          const dayKey = dayKeys[index];
+          
+          newSchedule[day] = data
+            .filter((show: any) => {
+              if (show.dayOfWeek) {
+                return show.dayOfWeek.includes(dayKey) || show.dayOfWeek.includes('daily');
+              }
+              return true;
+            })
+            .map((show: any) => ({
+              time: show.time || show.startTime || '10:00',
+              title: show.title,
+              host: show.host,
+              category: show.category,
+              duration: show.duration ? `${show.duration}ч` : '1ч'
+            }));
+        });
+
+        // Если API пустой, используем fallback
+        if (data.length === 0) {
+          setSchedule(getFallbackSchedule());
+        } else {
+          setSchedule(newSchedule);
+        }
+        
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Ошибка загрузки:', err);
+        setSchedule(getFallbackSchedule());
+        setLoading(false);
+      });
+  }, []);
+
+  // Fallback данные
+  function getFallbackSchedule(): Record<string, any[]> {
+    return {
+      'Пн': [
+        { time: '07:00', title: 'Утренний кофе', host: 'Анна Петрова', category: 'Утреннее шоу', duration: '3ч' },
+        { time: '10:00', title: 'Новости отелей', host: 'Дмитрий Иванов', category: 'Новости', duration: '1ч' },
+        { time: '12:00', title: 'Обеденный микс', host: 'Мария Козлова', category: 'Музыка', duration: '2ч' },
+        { time: '15:00', title: 'Кофе-брейк', host: 'Елена Волкова', category: 'Разговорное', duration: '1ч' },
+        { time: '18:00', title: 'Вечерний чилл', host: 'Алексей Смирнов', category: 'Музыка', duration: '3ч' },
+      ],
+      'Вт': [
+        { time: '07:00', title: 'Доброе утро', host: 'Сергей Новиков', category: 'Утреннее шоу', duration: '3ч' },
+        { time: '10:00', title: 'Бизнес-завтрак', host: 'Ольга Попова', category: 'Бизнес', duration: '1ч' },
+        { time: '12:00', title: 'Хиты дня', host: 'Андрей Морозов', category: 'Музыка', duration: '2ч' },
+        { time: '15:00', title: 'Истории гостей', host: 'Наталья Лебедева', category: 'Разговорное', duration: '1ч' },
+        { time: '18:00', title: 'Джазовый вечер', host: 'Игорь Волков', category: 'Музыка', duration: '3ч' },
+      ],
+      'Ср': [
+        { time: '07:00', title: 'Утренний кофе', host: 'Анна Петрова', category: 'Утреннее шоу', duration: '3ч' },
+        { time: '10:00', title: 'Советы консьержа', host: 'Виктор Соколов', category: 'Обучение', duration: '1ч' },
+        { time: '12:00', title: 'Ланч-тайм', host: 'Михаил Соколов', category: 'Музыка', duration: '2ч' },
+        { time: '15:00', title: 'Кухня шеф-повара', host: 'Павел Кузнецов', category: 'Кулинария', duration: '1ч' },
+        { time: '18:00', title: 'Релакс', host: 'Татьяна Новикова', category: 'Музыка', duration: '3ч' },
+      ],
+      'Чт': [
+        { time: '07:00', title: 'Старт дня', host: 'Кирилл Петров', category: 'Утреннее шоу', duration: '3ч' },
+        { time: '10:00', title: 'Тренды hospitality', host: 'Екатерина Смирнова', category: 'Бизнес', duration: '1ч' },
+        { time: '12:00', title: 'Поп-чарт', host: 'Артем Васильев', category: 'Музыка', duration: '2ч' },
+        { time: '15:00', title: 'Вопрос-ответ', host: 'Юлия Морозова', category: 'Разговорное', duration: '1ч' },
+        { time: '18:00', title: 'Вечер хитов', host: 'Максим Козлов', category: 'Музыка', duration: '3ч' },
+      ],
+      'Пт': [
+        { time: '07:00', title: 'Пятничное утро', host: 'Анна Петрова', category: 'Утреннее шоу', duration: '3ч' },
+        { time: '10:00', title: 'Неделя в цифрах', host: 'Станислав Иванов', category: 'Новости', duration: '1ч' },
+        { time: '12:00', title: 'Party mix', host: 'Денис Новиков', category: 'Музыка', duration: '2ч' },
+        { time: '15:00', title: 'Интервью недели', host: 'София Лебедева', category: 'Разговорное', duration: '1ч' },
+        { time: '18:00', title: 'Friday night', host: 'DJ Cosmos', category: 'Музыка', duration: '4ч' },
+      ],
+      'Сб': [
+        { time: '09:00', title: 'Субботний бранч', host: 'Вера Попова', category: 'Утреннее шоу', duration: '3ч' },
+        { time: '12:00', title: 'Weekend vibes', host: 'Глеб Морозов', category: 'Музыка', duration: '3ч' },
+        { time: '15:00', title: 'Подкаст недели', host: 'Редакция', category: 'Подкаст', duration: '1ч' },
+        { time: '18:00', title: 'Вечернее шоу', host: 'Алиса Волкова', category: 'Развлечения', duration: '4ч' },
+      ],
+      'Вс': [
+        { time: '09:00', title: 'Воскресный завтрак', host: 'Марина Кузнецова', category: 'Утреннее шоу', duration: '3ч' },
+        { time: '12:00', title: 'Chill Sunday', host: 'Роман Соколов', category: 'Музыка', duration: '3ч' },
+        { time: '15:00', title: 'Лучшее за неделю', host: 'Редакция', category: 'Обзор', duration: '2ч' },
+        { time: '18:00', title: 'Подготовка к неделе', host: 'Анна Петрова', category: 'Музыка', duration: '3ч' },
+      ],
+    };
+  }
+
+  const currentSchedule = schedule[activeDay] || [];
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse text-[#71717a]">Загрузка расписания...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -107,7 +168,7 @@ export function ScheduleSection() {
 
       {/* Schedule List */}
       <div className="space-y-3">
-        {schedule[activeDay as keyof typeof schedule]?.map((show, index) => (
+        {currentSchedule.map((show, index) => (
           <div
             key={index}
             className="show-card flex flex-col sm:flex-row sm:items-center gap-4"
