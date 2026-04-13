@@ -48,23 +48,20 @@ export function Footer() {
           </div>
 
           {/* Social */}
-          <div>
-            <h3 className="text-white font-medium mb-4">Соцсети</h3>
-            <ul className="space-y-2 text-white/60 text-sm">
-              {settings.social?.facebook && (
-                <li><a href={settings.social.facebook} target="_blank" rel="noopener" className="hover:text-white">Facebook</a></li>
-              )}
-              {settings.social?.instagram && (
-                <li><a href={settings.social.instagram} target="_blank" rel="noopener" className="hover:text-white">Instagram</a></li>
-              )}
-              {settings.social?.telegram && (
-                <li><a href={settings.social.telegram} target="_blank" rel="noopener" className="hover:text-white">Telegram</a></li>
-              )}
-              {settings.social?.youtube && (
-                <li><a href={settings.social.youtube} target="_blank" rel="noopener" className="hover:text-white">YouTube</a></li>
-              )}
-            </ul>
-          </div>
+<div>
+  <h3 className="text-white font-medium mb-4">Соцсети и платформы</h3>
+  <ul className="space-y-2 text-white/60 text-sm">
+    {settings.social?.vk && (
+      <li><a href={settings.social.vk} target="_blank" rel="noopener" className="hover:text-white">🔵 ВКонтакте</a></li>
+    )}
+    {settings.social?.telegram && (
+      <li><a href={settings.social.telegram} target="_blank" rel="noopener" className="hover:text-white">💬 Telegram</a></li>
+    )}
+    {settings.social?.mave && (
+      <li><a href={settings.social.mave} target="_blank" rel="noopener" className="hover:text-white">🎧 Mave</a></li>
+    )}
+  </ul>
+</div>
 
           {/* Links */}
           <div>
