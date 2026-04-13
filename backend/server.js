@@ -7,17 +7,24 @@ const path = require('path');
 const multer = require('multer');
 
 const app = express();
+
+// ВАЖНО: CORS должен быть до всех маршрутов
 app.use(cors());
 app.use(express.json());
 
 // Папка для загрузок
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+console.log('📁 Uploads directory:', UPLOADS_DIR);
+
+// Создаём папку если её нет
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  console.log('✅ Created uploads directory');
 }
 
 // Раздача статических файлов из папки uploads
 app.use('/uploads', express.static(UPLOADS_DIR));
+console.log('✅ Static files served from /uploads');
 
 // Настройка multer для загрузки изображений
 const storage = multer.diskStorage({
@@ -71,11 +78,20 @@ function writeData(data) {
 
 // ========== ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
 app.post('/api/upload', upload.single('image'), (req, res) => {
+  console.log('📤 Upload request received');
+  
   if (!req.file) {
+    console.error('❌ No file uploaded');
     return res.status(400).json({ error: 'Файл не загружен' });
   }
+  
+  console.log('✅ File uploaded:', req.file.filename);
+  
   const baseUrl = process.env.BASE_URL || `https://cosmosfm-production.up.railway.app`;
   const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+  
+  console.log('🖼️ Image URL:', imageUrl);
+  
   res.json({ url: imageUrl });
 });
 
@@ -230,6 +246,16 @@ app.post('/api/data', (req, res) => {
     res.json({ message: 'Data updated' });
   } else {
     res.status(500).json({ error: 'Failed to write data' });
+  }
+});
+
+// ========== ОТЛАДКА: список файлов в uploads ==========
+app.get('/api/debug/uploads', (req, res) => {
+  try {
+    const files = fs.readdirSync(UPLOADS_DIR);
+    res.json({ files, count: files.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
