@@ -1,117 +1,86 @@
-import { Radio, Mail, Phone, MapPin, Instagram, Youtube, Music2 } from 'lucide-react';
-
-const navLinks = [
-  { label: 'Проблема', href: '#problem' },
-  { label: 'Решение', href: '#solution' },
-  { label: 'Механика', href: '#mechanics' },
-  { label: 'Результаты', href: '#results' },
-];
-
-const socialLinks = [
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Youtube, href: '#', label: 'YouTube' },
-  { icon: Music2, href: '#', label: 'TikTok' },
-];
+import { useSettings } from '../context/SettingsContext';
+import { Radio, Mail, Phone, MapPin } from 'lucide-react';
 
 export function Footer() {
-  const scrollToSection = (href: string) => {
-    if (href === '#') return;
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const { settings } = useSettings();
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="relative py-16 border-t border-[#27273a]/50">
-      <div className="section-padding max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+    <footer className="bg-[#0a0a0f] border-t border-white/5 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
-          <div className="lg:col-span-2">
-            <a
-              href="#"
-              className="flex items-center gap-3 mb-6"
-              onClick={(e) => {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-            >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center">
-                <Radio className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold gradient-text">Cosmos FM</span>
-            </a>
-            <p className="text-[#71717a] max-w-md mb-6 leading-relaxed">
-              Первый в России корпоративный медиа-канал в индустрии гостеприимства. 
-              Вдохновляем сотрудников, удивляем гостей, укрепляем бренд изнутри.
-            </p>
-            <div className="flex gap-4">
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    className="w-10 h-10 rounded-xl bg-[#13131f] border border-[#27273a] flex items-center justify-center text-[#71717a] hover:text-white hover:border-[#6366f1] transition-colors"
-                    aria-label={social.label}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Navigation */}
           <div>
-            <h4 className="font-semibold mb-6">Навигация</h4>
-            <ul className="space-y-3">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <button
-                    onClick={() => scrollToSection(link.href)}
-                    className="text-[#71717a] hover:text-white transition-colors"
-                  >
-                    {link.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="flex items-center gap-2 mb-4">
+              <Radio className="w-6 h-6 text-[#6366f1]" />
+              <span className="text-lg font-bold text-white">{settings.siteName}</span>
+            </div>
+            <p className="text-white/60 text-sm">{settings.siteDescription}</p>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="font-semibold mb-6">Контакты</h4>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-[#6366f1] mt-0.5" />
-                <span className="text-[#71717a]">info@cosmosfm.ru</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-[#6366f1] mt-0.5" />
-                <span className="text-[#71717a]">+7 (999) 000-00-00</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-[#6366f1] mt-0.5" />
-                <span className="text-[#71717a]">Москва, Россия</span>
-              </li>
+            <h3 className="text-white font-medium mb-4">Контакты</h3>
+            <ul className="space-y-2 text-white/60 text-sm">
+              {settings.contactEmail && (
+                <li className="flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  <a href={`mailto:${settings.contactEmail}`} className="hover:text-white">
+                    {settings.contactEmail}
+                  </a>
+                </li>
+              )}
+              {settings.contactPhone && (
+                <li className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  <a href={`tel:${settings.contactPhone}`} className="hover:text-white">
+                    {settings.contactPhone}
+                  </a>
+                </li>
+              )}
+              {settings.contactAddress && (
+                <li className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>{settings.contactAddress}</span>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Social */}
+          <div>
+            <h3 className="text-white font-medium mb-4">Соцсети</h3>
+            <ul className="space-y-2 text-white/60 text-sm">
+              {settings.social?.facebook && (
+                <li><a href={settings.social.facebook} target="_blank" rel="noopener" className="hover:text-white">Facebook</a></li>
+              )}
+              {settings.social?.instagram && (
+                <li><a href={settings.social.instagram} target="_blank" rel="noopener" className="hover:text-white">Instagram</a></li>
+              )}
+              {settings.social?.telegram && (
+                <li><a href={settings.social.telegram} target="_blank" rel="noopener" className="hover:text-white">Telegram</a></li>
+              )}
+              {settings.social?.youtube && (
+                <li><a href={settings.social.youtube} target="_blank" rel="noopener" className="hover:text-white">YouTube</a></li>
+              )}
+            </ul>
+          </div>
+
+          {/* Links */}
+          <div>
+            <h3 className="text-white font-medium mb-4">Навигация</h3>
+            <ul className="space-y-2 text-white/60 text-sm">
+              <li><a href="#home" className="hover:text-white">Эфир</a></li>
+              <li><a href="#schedule" className="hover:text-white">Расписание</a></li>
+              <li><a href="#podcasts" className="hover:text-white">Подкасты</a></li>
+              <li><a href="#hosts" className="hover:text-white">Ведущие</a></li>
+              <li><a href="#about" className="hover:text-white">О нас</a></li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="pt-8 border-t border-[#27273a]/50 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-[#71717a]">
-            © 2026 Cosmos FM. Все права защищены.
-          </p>
-          <div className="flex gap-6">
-            <a href="#" className="text-sm text-[#71717a] hover:text-white transition-colors">
-              Политика конфиденциальности
-            </a>
-            <a href="#" className="text-sm text-[#71717a] hover:text-white transition-colors">
-              Условия использования
-            </a>
-          </div>
+        <div className="pt-8 border-t border-white/5 text-center text-white/40 text-sm">
+          © {year} {settings.siteName}. Все права защищены.
         </div>
       </div>
     </footer>
